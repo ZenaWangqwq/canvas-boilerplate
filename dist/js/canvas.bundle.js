@@ -97,12 +97,6 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/utils.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_utils__WEBPACK_IMPORTED_MODULE_0__);
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
 
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
@@ -112,7 +106,9 @@ var mouse = {
   x: innerWidth / 2,
   y: innerHeight / 2
 };
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66']; // Event Listeners
+var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
+var gravity = 0.6;
+var fiction = 0.99; // Event Listeners
 
 addEventListener('mousemove', function (event) {
   mouse.x = event.clientX;
@@ -122,44 +118,67 @@ addEventListener('resize', function () {
   canvas.width = innerWidth;
   canvas.height = innerHeight;
   init();
+});
+addEventListener('click', function () {
+  init();
 }); // Objects
 
-var _Object = /*#__PURE__*/function () {
-  function Object(x, y, radius, color) {
-    _classCallCheck(this, Object);
+function Ball(x, y, dx, dy, radius, color) {
+  this.x = x;
+  this.y = y;
+  this.dx = dx;
+  this.dy = dy;
+  this.radius = radius;
+  this.color = color;
 
-    this.x = x;
-    this.y = y;
-    this.radius = radius;
-    this.color = color;
-  }
+  this.draw = function () {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    c.fillStyle = this.color;
+    c.fill();
+    c.stroke;
+    c.closePath();
+  };
 
-  _createClass(Object, [{
-    key: "draw",
-    value: function draw() {
-      c.beginPath();
-      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-      c.fillStyle = this.color;
-      c.fill();
-      c.closePath();
+  this.update = function () {
+    if (this.x + radius > innerWidth || this.x - radius < 0) {
+      this.dx = -this.dx;
     }
-  }, {
-    key: "update",
-    value: function update() {
-      this.draw();
+
+    if (this.y + radius + this.dy > innerHeight) {
+      this.dy = -this.dy * fiction;
+    } else {
+      this.dy += gravity;
     }
-  }]);
 
-  return Object;
-}(); // Implementation
+    this.x += this.dx;
+    this.y += this.dy;
+    this.draw();
+  };
+}
+
+function randomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function randomColor(array) {
+  return array[randomNumber(0, array.length)];
+} // Implementation
 
 
-var objects;
+var ballArray = [];
 
 function init() {
-  objects = [];
+  ballArray = [];
 
-  for (var i = 0; i < 400; i++) {// objects.push()
+  for (var i = 0; i < 400; i++) {
+    var radius = randomNumber(5, 30);
+    var x = randomNumber(radius, innerWidth - radius);
+    var y = randomNumber(radius, innerHeight - radius);
+    var dx = randomNumber(-2, 2);
+    var dy = randomNumber(-2, 2);
+    var color = randomColor(colors);
+    ballArray.push(new Ball(x, y, dx, dy, radius, color));
   }
 } // Animation Loop
 
@@ -167,9 +186,14 @@ function init() {
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
-  c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y); // objects.forEach(object => {
+
+  for (var i = 0; i < ballArray.length; i++) {
+    ballArray[i].update();
+  } // c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y)
+  // objects.forEach(object => {
   //  object.update()
   // })
+
 }
 
 init();
